@@ -23,17 +23,20 @@ object Tetris extends JFXApp {
 
 @sfxml
 class fieldController(private val canvas: Canvas) {
-  val field = Seq(10, 20)
-  val block = 30
-  val size = Seq(field.head * block, field.last * block)
-  val gc: GraphicsContext = canvas.getGraphicsContext2D
-  val tl: Timeline = new Timeline()
+  val max = (10, 20)
+  val blockSize = 30
+  val field = new Field(max)
+  val size = (max._1 * blockSize, max._2 * blockSize)
+  val gc: GraphicsContext = canvas getGraphicsContext2D
+  val tl = new Timeline
 
-  canvas.width = size.head
-  canvas.height = size.last
+  canvas.width = 400
+  canvas.height = 600
   gc.fill = Color.Black
-  gc.fillRect(0, 0, size.head, size.last)
+  gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
   gc.stroke = Color.White
-  1 to field.head foreach (i => gc.strokeLine(block * i, 0, block * i, size.last))
-  1 to field.last foreach(i => gc.strokeLine(0, block * i, size.head, block * i))
+  1 to max._1 foreach(i => gc.strokeLine(blockSize * i, 0, blockSize * i, size._2))
+  1 to max._2 foreach(i => gc.strokeLine(0, blockSize * i, size._1, blockSize * i))
+  gc.fill = Color.White
+  for (block <- field.view.blocks) gc.fillRect(block.pos._1 * blockSize, size._2 - block.pos._2 * blockSize, blockSize, blockSize)
 }
