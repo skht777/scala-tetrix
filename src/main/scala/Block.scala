@@ -12,7 +12,19 @@ case class Block(kind: Kind, pos: (Int, Int))
 
 case class Point(kind: Kind, pos: (Double, Double), locales: Seq[(Double, Double)]) {
   def current: Seq[Block] = locales map { case (x, y) =>
-    Block(kind, (math.floor(x + pos._1).toInt, math.floor(y + pos._2).toInt))
+    Block(kind, (math.floor(x + pos._1) toInt, math.floor(y + pos._2) toInt))
+  }
+
+  def moveBy(d: (Double, Double)): Point = copy(pos = (pos._1 + d._1, pos._2 + d._2))
+
+  def rotateBy(theta: Double): Point = {
+    val c = math cos theta
+    val s = math sin theta
+
+    def roundToHalf(v: (Double, Double)): (Double, Double) =
+      (math.round(v._1 * 2.0) * 0.5, math.round(v._2 * 2.0) * 0.5)
+
+    copy(locales = locales map { case (x, y) => (x * c - y * s, x * s + y * c) } map roundToHalf)
   }
 }
 
@@ -63,5 +75,3 @@ object BlockColor {
     case NBO => Color.White
   }
 }
-
-case class GameView(blocks: Seq[Block], gridSize: (Int, Int), current: Seq[Block])
