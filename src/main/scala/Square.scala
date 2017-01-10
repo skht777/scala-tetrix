@@ -8,41 +8,45 @@ import scalafx.scene.paint.Color
   * @author skht777
   *
   */
-case class Block(kind: Kind, pos: Coordinate[Int])
+case class Square(kind: Kind, pos: Point[Int])
 
-case class Coordinate[T](x: T, y: T)(implicit num: Numeric[T]) {
+case class Point[T](x: T, y: T)(implicit num: Numeric[T]) {
 
   import num._
 
-  def map[U: Numeric](func: T => U) = Coordinate(func(x), func(y))
+  def map[U](func: T => U)(implicit u: Numeric[U]) = Point(func(x), func(y))
 
-  def +(other: Coordinate[T]) = Coordinate(this.x + other.x, this.y + other.y)
+  def +(other: Point[T]) = Point(this.x + other.x, this.y + other.y)
 
-  def *[U: Numeric](scalar: U): Coordinate[T] = Coordinate(x * scalar.asInstanceOf[T], y * scalar.asInstanceOf[T])
+  def *[U <: T](scalar: U) = Point(x * scalar, y * scalar)
+
+  def typeToInt = map { _.toInt }
+
+  def typeToDouble = map { _.toDouble }
 }
 
-case class Point(kind: Kind, pos: Coordinate[Double], locales: Seq[Coordinate[Double]]) {
-  def current: Seq[Block] = locales map { p => Block(kind, (p + pos).map(c => math.floor(c) toInt)) }
+case class Block(kind: Kind, pos: Point[Double], locales: Seq[Point[Double]]) {
+  def current: Seq[Square] = locales map { p => Square(kind, (p + pos) map math.floor typeToInt) }
 
-  def moveBy(dx: Double, dy: Double) = copy(pos = pos + Coordinate(dx, dy))
+  def moveBy(dx: Double, dy: Double) = copy(pos = pos + Point(dx, dy))
 
   def rotateBy(theta: Double) = {
-    def rotate(v: Coordinate[Double]) = {
+    def rotate(v: Point[Double]) = {
       val (sin, cos) = (math sin theta, math cos theta)
-      Coordinate(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
+      Point(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
     }
 
-    def roundToHalf(v: Coordinate[Double]) = v.map(c => math.round(c * 2) * 0.5)
+    def roundToHalf(v: Point[Double]) = (v * 2 map math.round).typeToDouble * 0.5
 
     copy(locales = locales map rotate map roundToHalf)
   }
 }
 
-case object Point {
-  def apply(kind: Kind, pos: Coordinate[Double]): Point = {
-    def p(x: Double, y: Double) = Coordinate(x, y)
+case object Block {
+  def apply(kind: Kind, pos: Point[Double]): Block = {
+    def p(x: Double, y: Double) = Point(x, y)
 
-    Point(kind, pos, kind match {
+    Block(kind, pos, kind match {
       case I => Seq(p(-1.5, 0.0), p(-0.5, 0.0), p(0.5, 0.0), p(1.5, 0.0))
       case J => Seq(p(-1.0, -0.5), p(0.0, -0.5), p(1.0, -0.5), p(-1.0, 0.5))
       case L => Seq(p(-1.0, -0.5), p(0.0, -0.5), p(1.0, -0.5), p(1.0, 0.5))

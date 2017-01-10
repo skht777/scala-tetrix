@@ -25,7 +25,7 @@ object Tetris extends JFXApp {
 
 @sfxml
 class fieldController(private val canvas: Canvas) {
-  val max = Coordinate(10, 20)
+  val max = Point(10, 20)
   val blockSize = 30
   val field = new Field(max)
   val size = max * blockSize
