@@ -8,8 +8,6 @@ import scalafx.scene.paint.Color
   * @author skht777
   *
   */
-case class Square(kind: Kind, pos: Point[Int])
-
 case class Point[T](x: T, y: T)(implicit num: Numeric[T]) {
 
   import num._
@@ -25,6 +23,38 @@ case class Point[T](x: T, y: T)(implicit num: Numeric[T]) {
   def typeToDouble = map { _.toDouble }
 }
 
+sealed trait Kind
+
+object Kind {
+
+  case object I extends Kind
+
+  case object J extends Kind
+
+  case object L extends Kind
+
+  case object S extends Kind
+
+  case object Z extends Kind
+
+  case object T extends Kind
+
+  case object O extends Kind
+
+  case object NBO extends Kind
+
+  private val values = Seq(I, J, L, S, Z, T, O)
+
+  def apply(x: Int): Kind = values(x)
+
+  def random(r: Random): Kind = Kind(r nextInt values.length)
+
+  def ordinal(x: Kind): Int = values indexOf x
+
+}
+
+case class Square(kind: Kind, pos: Point[Int])
+
 case class Block(kind: Kind, pos: Point[Double], locales: Seq[Point[Double]]) {
   def current: Seq[Square] = locales map { p => Square(kind, (p + pos) map math.floor typeToInt) }
 
@@ -36,7 +66,7 @@ case class Block(kind: Kind, pos: Point[Double], locales: Seq[Point[Double]]) {
       Point(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
     }
 
-    def roundToHalf(v: Point[Double]) = (v * 2 map math.round).typeToDouble * 0.5
+    def roundToHalf(v: Point[Double]) = (v * 2.0 map math.round).typeToDouble * 0.5
 
     copy(locales = locales map rotate map roundToHalf)
   }
@@ -56,29 +86,6 @@ case object Block {
       case O => Seq(p(-0.5, 0.5), p(0.5, 0.5), p(-0.5, -0.5), p(0.5, -0.5))
     })
   }
-}
-
-sealed trait Kind
-
-object Kind {
-
-  case object I extends Kind
-  case object J extends Kind
-  case object L extends Kind
-  case object S extends Kind
-  case object Z extends Kind
-  case object T extends Kind
-  case object O extends Kind
-  case object NBO extends Kind
-
-  private val values = Seq(I, J, L, S, Z, T, O)
-
-  def apply(x: Int): Kind = values(x)
-
-  def random(r: Random): Kind = Kind(r nextInt values.length)
-
-  def ordinal(x: Kind): Int = values indexOf x
-
 }
 
 object BlockColor {
