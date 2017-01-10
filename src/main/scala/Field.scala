@@ -1,4 +1,4 @@
-import Kind.T
+import Kind._
 
 /**
   *
@@ -8,17 +8,18 @@ import Kind.T
 case class Field(size: Point[Int]) {
   def newState(blocks: Seq[Square] = Seq()): State = {
     val dropPos = Point(size.x / 2.0, size.y)
-    State(Block(T, dropPos), blocks).load()
+    State(Block(random(scala.util.Random), dropPos), blocks).load()
   }
 
   val moveLeft = transit(_.moveBy(-1.0, 0.0))
   val moveRight = transit(_.moveBy(1.0, 0.0))
   val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
-  val moveDown = transit(_.moveBy(0.0, -1.0))
+  val moveDown = transit(_.moveBy(0.0, -1.0), s => newState(s.blocks))
 
-  private[this] def transit(trans: Block => Block) =
+  private[this] def transit(trans: Block => Block,
+                            onFail: State => State = identity) =
     (s: State) => validate(s.unload()
-      .copy(current = trans(s.current))) map (_.load()) getOrElse s
+      .copy(current = trans(s.current))) map (_.load()) getOrElse onFail(s)
 
   private[this] def validate(s: State): Option[State] = {
     def inBounds(pos: Point[Int]): Boolean =
