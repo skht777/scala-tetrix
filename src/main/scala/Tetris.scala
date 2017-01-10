@@ -25,15 +25,15 @@ object Tetris extends JFXApp {
 
 @sfxml
 class fieldController(private val canvas: Canvas) {
-  val max = (10, 20)
+  val max = Coordinate(10, 20)
   val blockSize = 30
   val field = new Field(max)
-  val size = (max._1 * blockSize, max._2 * blockSize)
+  val size = max * blockSize
   val gc: GraphicsContext = jfxGraphicsContext2sfx(canvas getGraphicsContext2D)
   val tl = new Timeline
   var state = field.newState()
 
-  tl.keyFrames = Seq(KeyFrame(Duration(1000), null, _ => {
+  tl.keyFrames = Seq(KeyFrame(Duration(1000), onFinished = _ => {
     state = field moveDown state
     drawView
   }))
@@ -48,10 +48,10 @@ class fieldController(private val canvas: Canvas) {
     gc.fill = Color.Black
     gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
     gc.stroke = Color.White
-    1 to max._1 foreach (i => gc.strokeLine(blockSize * i, 0, blockSize * i, size._2))
-    1 to max._2 foreach (i => gc.strokeLine(0, blockSize * i, size._1, blockSize * i))
+    1 to max.x foreach (i => gc.strokeLine(blockSize * i, 0, blockSize * i, size.y))
+    1 to max.y foreach (i => gc.strokeLine(0, blockSize * i, size.x, blockSize * i))
     gc.fill = Color.White
-    for (block <- state.view.blocks) gc.fillRect(block.pos._1 * blockSize, (max._2 - block.pos._2 - 1) * blockSize, blockSize, blockSize)
+    for (block <- state.view.blocks) gc.fillRect(block.pos.x * blockSize, (max.y - block.pos.y - 1) * blockSize, blockSize, blockSize)
   }
 
   def operate(key: KeyEvent): Unit = {
