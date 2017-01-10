@@ -6,7 +6,7 @@
 
 <Group xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fieldController"
        onKeyReleased="#operate">
-   <children>
-      <Canvas fx:id="canvas" focusTraversable="true"/>
-   </children>
+    <children>
+        <Canvas fx:id="canvas" focusTraversable="true" width="400" height="600"/>
+    </children>
 </Group>

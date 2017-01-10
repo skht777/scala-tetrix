@@ -1,4 +1,4 @@
-import scalafx.Includes.{jfxKeyCode2sfx, _}
+import scalafx.Includes._
 import scalafx.animation.{KeyFrame, Timeline}
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -21,30 +21,24 @@ object Tetris extends JFXApp {
     title = "tetris"
     scene = new Scene(FXMLView(getClass.getResource("root.fxml"), NoDependencyResolver))
   }
+  stage.getScene.getRoot.requestFocus()
 }
 
 @sfxml
 class fieldController(private val canvas: Canvas) {
   val max = Point(10, 20)
   val blockSize = 30
-  val field = new Field(max)
+  val field = Field(max)
   val size = max * blockSize
   val gc: GraphicsContext = jfxGraphicsContext2sfx(canvas getGraphicsContext2D)
-  val tl = new Timeline
+  val tl = Timeline(Seq(KeyFrame(Duration(1000),
+    onFinished = _ => transAndDraw(field.moveDown))))
   var state = field.newState()
 
-  tl.keyFrames = Seq(KeyFrame(Duration(1000), onFinished = _ => {
-    state = field moveDown state
-    drawView
-  }))
   tl.cycleCount = Timeline.Indefinite
-  canvas.width = 400
-  canvas.height = 600
-  canvas.requestFocus()
-  drawView
-  tl play
+  drawView()
 
-  def drawView = {
+  def drawView() = {
     gc.fill = Color.Black
     gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
     gc.stroke = Color.White
@@ -54,15 +48,21 @@ class fieldController(private val canvas: Canvas) {
     for (block <- state.view.blocks) gc.fillRect(block.pos.x * blockSize, (max.y - block.pos.y - 1) * blockSize, blockSize, blockSize)
   }
 
+  def transAndDraw(trans: State => State) = {
+    state = trans(state)
+    drawView()
+  }
+
   def operate(key: KeyEvent): Unit = {
-    state = jfxKeyCode2sfx(key getCode) match {
-      case KeyCode.Left => field moveLeft state
-      case KeyCode.Right => field moveRight state
-      case KeyCode.Up => field rotateCW state
-      case KeyCode.Down => field moveDown state
-      case KeyCode.Space => state
-      case _ => state
+    if (key.getCode == KeyCode.Enter.delegate) tl.play()
+    val trans: State => State = jfxKeyCode2sfx(key.getCode) match {
+      case KeyCode.Left => field.moveLeft
+      case KeyCode.Right => field.moveRight
+      case KeyCode.Up => field.rotateCW
+      case KeyCode.Down => field.moveDown
+      case KeyCode.Space => identity
+      case _ => identity
     }
-    drawView
+    transAndDraw(trans)
   }
 }
