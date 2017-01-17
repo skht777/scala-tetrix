@@ -15,7 +15,7 @@ case class Field(size: Point[Int]) {
     Function.chain(clearFullRow :: { s: State => newState(s.blocks) } :: Nil))
 
   def newState(blocks: Seq[Square] = Seq()) = {
-    val dropPos = Point(size.x / 2.0, size.y)
+    val dropPos = Point(size.x / 2.0, size.y + 1)
     State(Block(random(scala.util.Random), dropPos), blocks).load()
   }
 
@@ -29,7 +29,7 @@ case class Field(size: Point[Int]) {
       pos.x >= 0 && pos.x < size.x && pos.y >= 0 && pos.y <= size.y + 2
 
     if ((s.currentPos forall inBounds) &&
-      (s.blocsPos intersect s.currentPos).isEmpty) Some(s)
+      (s.blocksPos intersect s.currentPos).isEmpty) Some(s)
     else None
   }
 
@@ -55,7 +55,7 @@ case class State(current: Block, blocks: Seq[Square]) {
 
   def currentPos = current.current map { _.pos }
 
-  def blocsPos = blocks map { _.pos }
+  def blocksPos = blocks map { _.pos }
 
   def load(b: Block = current) = copy(blocks = blocks ++ b.current)
 
