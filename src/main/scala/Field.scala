@@ -1,5 +1,3 @@
-import Kind._
-
 import scala.annotation.tailrec
 
 /**
@@ -12,11 +10,15 @@ case class Field(size: Point[Int]) {
   val moveRight = transit(_.moveBy(1.0, 0.0))
   val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
   val moveDown = transit(_.moveBy(0.0, -1.0),
-    Function.chain(clearFullRow :: { s: State => newState(s.blocks) } :: Nil))
+    Function.chain(clearFullRow :: newState :: Nil))
 
-  def newState(blocks: Seq[Square] = Seq()) = {
+  def initState: State = newState(State(next = Block.random()))
+
+  private[this] lazy val newState = (s: State) => {
     val dropPos = Point(size.x / 2.0, size.y + 1)
-    State(Block(random(scala.util.Random), dropPos), blocks).load()
+    val toCurrent = s.next.copy(pos = dropPos)
+
+    s.copy(toCurrent, Block.random()).load()
   }
 
   private[this] def transit(trans: Block => Block,
@@ -48,10 +50,10 @@ case class Field(size: Point[Int]) {
   }
 }
 
-case class View(current: Block, blocks: Seq[Square])
+case class View(current: Block, next: Block, blocks: Seq[Square])
 
-case class State(current: Block, blocks: Seq[Square]) {
-  def view: View = View(current, blocks)
+case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq()) {
+  def view: View = View(current, next, blocks)
 
   def currentPos = current.current map { _.pos }
 

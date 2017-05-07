@@ -1,7 +1,6 @@
 import Kind._
 
 import scala.util.Random
-import scalafx.scene.paint.Color
 
 /**
   *
@@ -14,13 +13,13 @@ case class Point[T](x: T, y: T)(implicit num: Numeric[T]) {
 
   def map[U](func: T => U)(implicit u: Numeric[U]) = Point(func(x), func(y))
 
-  def +(other: Point[T]) = Point(this.x + other.x, this.y + other.y)
+  def +[U <: T](other: Point[U]): Point[T] = Point(this.x + other.x, this.y + other.y)
 
-  def *[U <: T](scalar: U) = Point(x * scalar, y * scalar)
+  def +[U >: T](other: Point[U])(implicit u: Numeric[U]): Point[U] = Point[U](x, y) + other
 
-  def typeToInt = map { _.toInt }
+  def *[U <: T](scalar: U): Point[T] = Point(x * scalar, y * scalar)
 
-  def typeToDouble = map { _.toDouble }
+  def *[U >: T](scalar: U)(implicit u: Numeric[U]): Point[U] = Point[U](x, y) * scalar
 }
 
 sealed trait Kind
@@ -43,20 +42,19 @@ object Kind {
 
   case object NBO extends Kind
 
-  private val values = Seq(I, J, L, S, Z, T, O)
+  private[this] val values = Seq(I, J, L, S, Z, T, O)
 
-  def apply(x: Int): Kind = values(x)
+  private[this] def randomStream: Stream[Kind] = random(Random) #:: randomStream
 
-  def random(r: Random): Kind = Kind(r nextInt values.length)
+  private[this] def random(r: Random): Kind = values(r nextInt values.length)
 
-  def ordinal(x: Kind): Int = values indexOf x
-
+  def apply() = randomStream.head
 }
 
 case class Square(kind: Kind, pos: Point[Int])
 
 case class Block(kind: Kind, pos: Point[Double], locales: Seq[Point[Double]]) {
-  def current: Seq[Square] = locales map { p => Square(kind, (p + pos) map math.floor typeToInt) }
+  def current: Seq[Square] = locales map (p => (p + pos) map math.floor map (_.toInt)) map (Square(kind, _))
 
   def moveBy(dx: Double, dy: Double) = copy(pos = pos + Point(dx, dy))
 
@@ -66,14 +64,14 @@ case class Block(kind: Kind, pos: Point[Double], locales: Seq[Point[Double]]) {
       Point(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
     }
 
-    def roundToHalf(v: Point[Double]) = (v * 2.0 map math.round).typeToDouble * 0.5
+    def roundToHalf(v: Point[Double]): Point[Double] = (v * 2.0 map math.round) map (_ * 0.5)
 
     copy(locales = locales map rotate map roundToHalf)
   }
 }
 
 case object Block {
-  def apply(kind: Kind, pos: Point[Double]): Block = {
+  def apply(kind: Kind = Kind(), pos: Point[Double]): Block = {
     def p(x: Double, y: Double) = Point(x, y)
 
     Block(kind, pos, kind match {
@@ -82,21 +80,10 @@ case object Block {
       case L => Seq(p(-1.0, -0.5), p(0.0, -0.5), p(1.0, -0.5), p(1.0, 0.5))
       case S => Seq(p(0.0, 0.5), p(-1.0, -0.5), p(1.0, 0.5), p(0.0, -0.5))
       case Z => Seq(p(0.0, 0.5), p(-1.0, 0.5), p(1.0, -0.5), p(0.0, -0.5))
-      case T => Seq(p(-1.0, 0.0), p(0.0, 0.0), p(1.0, 0.0), p(0.0, 1.0))
+      case T => Seq(p(-1.0, -0.5), p(0.0, -0.5), p(1.0, -0.5), p(0.0, 0.5))
       case O => Seq(p(-0.5, 0.5), p(0.5, 0.5), p(-0.5, -0.5), p(0.5, -0.5))
     })
   }
-}
 
-object BlockColor {
-  def apply(kind: Kind): Color = kind match {
-    case I => Color.White
-    case J => Color.White
-    case L => Color.White
-    case S => Color.White
-    case Z => Color.White
-    case T => Color.White
-    case O => Color.White
-    case NBO => Color.White
-  }
+  def random(pos: Point[Double] = Point(0, 0)) = apply(pos = pos)
 }
