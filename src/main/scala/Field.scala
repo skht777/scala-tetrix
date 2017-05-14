@@ -11,20 +11,27 @@ case class Field(size: Point[Int]) {
   val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
   val moveDown = transit(_.moveBy(0.0, -1.0),
     Function.chain(clearFullRow :: newState :: Nil))
+  val transStatus = (s: State) => s.status match {
+    case Ready => s.copy(status = Active)
+    case GameOver => initState
+  }
 
-  def initState: State = newState(State(next = Block.random()))
+  def initState: State = newState(State(next = Block.random(), status = Ready))
 
   private[this] lazy val newState = (s: State) => {
     val dropPos = Point(size.x / 2.0, size.y + 1)
-    val toCurrent = s.next.copy(pos = dropPos)
+    val current = s.copy(s.next.copy(pos = dropPos), Block.random())
 
-    s.copy(toCurrent, Block.random()).load()
+    validate(current) map (vs => vs.load()) getOrElse current.copy(status = GameOver).load()
   }
 
   private[this] def transit(trans: Block => Block,
                             onFail: State => State = identity) =
-    (s: State) => validate(s.unload()
-      .copy(current = trans(s.current))) map (_.load()) getOrElse onFail(s)
+    (s: State) => s.status match {
+      case Active => validate(s.unload()
+        .copy(current = trans(s.current))) map (_.load()) getOrElse onFail(s)
+      case _ => s
+    }
 
   private[this] def validate(s: State): Option[State] = {
     def inBounds(pos: Point[Int]): Boolean =
@@ -52,7 +59,7 @@ case class Field(size: Point[Int]) {
 
 case class View(current: Block, next: Block, blocks: Seq[Square])
 
-case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq()) {
+case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq(), status: Status = Active) {
   def view: View = View(current, next, blocks)
 
   def currentPos = current.current map { _.pos }
@@ -64,3 +71,11 @@ case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq()
   def unload(b: Block = current) = copy(blocks =
     blocks filterNot { b.current map { _.pos } contains _.pos })
 }
+
+sealed trait Status
+
+case object Active extends Status
+
+case object Ready extends Status
+
+case object GameOver extends Status

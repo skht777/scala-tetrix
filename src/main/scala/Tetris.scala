@@ -70,6 +70,13 @@ class fieldController(private val canvas: Canvas) {
       gc.strokeLine(x, y + nextSize, x + nextSize, y + nextSize)
       gc.strokeLine(x + nextSize, y, x + nextSize, y + nextSize)
     })
+
+    gc.stroke = Color.White
+    state.status match {
+      case Ready => gc.strokeText("Press the Enter", size.x + 10, size.y / 2)
+      case GameOver => gc.strokeText("Game Over", size.x + 10, size.y / 2)
+      case _ =>
+    }
   }
 
   private[this] def transAndDraw(trans: State => State) = {
@@ -85,6 +92,7 @@ class fieldController(private val canvas: Canvas) {
       case KeyCode.Up => field.rotateCW
       case KeyCode.Down => field.moveDown
       case KeyCode.Space => identity
+      case KeyCode.Enter => field.transStatus
       case _ => identity
     }
     transAndDraw(trans)
