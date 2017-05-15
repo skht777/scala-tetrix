@@ -36,6 +36,24 @@ class fieldController(private val canvas: Canvas) {
   tl.cycleCount = Timeline.Indefinite
   drawView()
 
+  private[this] def drawBlock(posX: Int, posY: Int, size: Int, exX: Int = 0, exY: Int = 0) = {
+    val (x, y) = (exX + posX * size, exY + posY * size)
+    gc.fill = Color.White
+    gc.stroke = Color.Black
+    gc.fillRect(x, y, size, size)
+    gc.strokeLine(x, y, x + size, y)
+    gc.strokeLine(x, y, x, y + size)
+    gc.strokeLine(x, y + size, x + size, y + size)
+    gc.strokeLine(x + size, y, x + size, y + size)
+  }
+
+  private[this] def drawLine(w: Int, h: Int, size: Int, exX: Int = 0, exY: Int = 0) = {
+    gc.fill = Color.Black
+    gc.stroke = Color.White
+    0 to w foreach (i => gc.strokeLine(exX + size * i, exY, exX + size * i, exY + size * h))
+    0 to h foreach (i => gc.strokeLine(exX, exY + size * i, exX + size * w, exY + size * i))
+  }
+
   private[this] def drawView() = {
     val blockSize = 30
     val nextSize = blockSize / 2
@@ -43,38 +61,18 @@ class fieldController(private val canvas: Canvas) {
     val nextPos = Point(max.x + 1, 2) * blockSize
     gc.fill = Color.Black
     gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
-    gc.stroke = Color.White
-    0 to max.x foreach (i => gc.strokeLine(blockSize * i, 0, blockSize * i, size.y))
-    0 to max.y foreach (i => gc.strokeLine(0, blockSize * i, size.x, blockSize * i))
-    // draw next block line
-    0 to 4 foreach (i => {
-      gc.strokeLine(nextPos.x + nextSize * i, nextPos.y, nextPos.x + nextSize * i, nextPos.y + nextSize * 4)
-      gc.strokeLine(nextPos.x, nextPos.y + nextSize * i, nextPos.x + nextSize * 4, nextPos.y + nextSize * i)
-    })
-    gc.fill = Color.White
-    gc.stroke = Color.Black
-    state.view.blocks foreach (b => {
-      val (x, y) = (b.pos.x * blockSize, (max.y - b.pos.y - 1) * blockSize)
-      gc.fillRect(x, y, blockSize, blockSize)
-      gc.strokeLine(x, y, x + blockSize, y)
-      gc.strokeLine(x, y, x, y + blockSize)
-      gc.strokeLine(x, y + blockSize, x + blockSize, y + blockSize)
-      gc.strokeLine(x + blockSize, y, x + blockSize, y + blockSize)
-    })
+    drawLine(max.x, max.y, blockSize)
+    state.view.blocks foreach (b => drawBlock(b.pos.x, max.y - b.pos.y - 1, blockSize))
+
     // draw next block
-    state.view.next.copy(pos = Point(2.0, 2.0)).current foreach (b => {
-      val (x, y) = (nextPos.x + b.pos.x * nextSize, nextPos.y + (4 - b.pos.y - 1) * nextSize)
-      gc.fillRect(x, y, nextSize, nextSize)
-      gc.strokeLine(x, y, x + nextSize, y)
-      gc.strokeLine(x, y, x, y + nextSize)
-      gc.strokeLine(x, y + nextSize, x + nextSize, y + nextSize)
-      gc.strokeLine(x + nextSize, y, x + nextSize, y + nextSize)
-    })
+    drawLine(4, 4, nextSize, nextPos.x, nextPos.y)
+    state.view.next.copy(pos = Point(2.0, 2.0))
+      .current foreach (b => drawBlock(b.pos.x, 4 - b.pos.y - 1, nextSize, nextPos.x, nextPos.y))
 
     gc.stroke = Color.White
     state.status match {
-      case Ready => gc.strokeText("Press the Enter", size.x + 10, size.y / 2)
-      case GameOver => gc.strokeText("Game Over", size.x + 10, size.y / 2)
+      case Status.Ready => gc.strokeText("Press the Enter", size.x + 10, size.y / 2)
+      case Status.GameOver => gc.strokeText("Game Over", size.x + 10, size.y / 2)
       case _ =>
     }
   }

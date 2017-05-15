@@ -12,23 +12,23 @@ case class Field(size: Point[Int]) {
   val moveDown = transit(_.moveBy(0.0, -1.0),
     Function.chain(clearFullRow :: newState :: Nil))
   val transStatus = (s: State) => s.status match {
-    case Ready => s.copy(status = Active)
-    case GameOver => initState
+    case Status.Ready => s.copy(status = Status.Active)
+    case Status.GameOver => initState
   }
 
-  def initState: State = newState(State(next = Block.random(), status = Ready))
+  def initState: State = newState(State(next = Block.random(), status = Status.Ready))
 
   private[this] lazy val newState = (s: State) => {
     val dropPos = Point(size.x / 2.0, size.y + 1)
     val current = s.copy(s.next.copy(pos = dropPos), Block.random())
 
-    validate(current) map (vs => vs.load()) getOrElse current.copy(status = GameOver).load()
+    validate(current) map (vs => vs.load()) getOrElse current.copy(status = Status.GameOver).load()
   }
 
   private[this] def transit(trans: Block => Block,
                             onFail: State => State = identity) =
     (s: State) => s.status match {
-      case Active => validate(s.unload()
+      case Status.Active => validate(s.unload()
         .copy(current = trans(s.current))) map (_.load()) getOrElse onFail(s)
       case _ => s
     }
@@ -59,7 +59,7 @@ case class Field(size: Point[Int]) {
 
 case class View(current: Block, next: Block, blocks: Seq[Square])
 
-case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq(), status: Status = Active) {
+case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq(), status: Status = Status.Active) {
   def view: View = View(current, next, blocks)
 
   def currentPos = current.current map { _.pos }
@@ -74,8 +74,13 @@ case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq()
 
 sealed trait Status
 
-case object Active extends Status
+object Status {
 
-case object Ready extends Status
+  case object Active extends Status
 
-case object GameOver extends Status
+  case object Ready extends Status
+
+  case object GameOver extends Status
+
+}
+
