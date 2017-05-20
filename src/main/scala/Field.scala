@@ -57,10 +57,10 @@ case class Field(size: Point[Int]) {
   }
 }
 
-case class View(current: Block, next: Block, blocks: Seq[Square])
+sealed case class View(current: Block, next: Block, blocks: Seq[Square], status: Status)
 
-case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq(), status: Status = Status.Active) {
-  def view: View = View(current, next, blocks)
+sealed case class State(current: Block = null, next: Block, blocks: Seq[Square] = Seq(), status: Status = Status.Active) {
+  def view: View = View(current, next, blocks, status)
 
   def currentPos = current.current map { _.pos }
 
