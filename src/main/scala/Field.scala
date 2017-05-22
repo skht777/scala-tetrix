@@ -14,6 +14,7 @@ case class Field(size: Point[Int]) {
   val transStatus = (s: State) => s.status match {
     case Status.Ready => s.copy(status = Status.Active)
     case Status.GameOver => initState
+    case _ => s
   }
 
   def initState: State = newState(State(next = Block.random(), status = Status.Ready))
