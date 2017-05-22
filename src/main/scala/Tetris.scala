@@ -47,7 +47,7 @@ class fieldController(private val canvas: Canvas) {
 
   private[this] def strokeLine(x: Double, y: Double, w: Double, h: Double) = gc.strokeLine(x, y, x + w, y + h)
 
-  private[this] def strokeLine(w: Int, h: Int, size: Int, exX: Double = 0, exY: Double = 0) = {
+  private[this] def strokeLines(w: Int, h: Int, size: Int, exX: Double = 0, exY: Double = 0) = {
     gc.fill = Color.Black
     gc.stroke = Color.White
     0 to w map (i => i * size) foreach (x => strokeLine(exX + x, exY, 0, size * h))
@@ -61,11 +61,11 @@ class fieldController(private val canvas: Canvas) {
     val nextPos = Point(unit.size.x + 1, 2) * blockSize
     gc.fill = Color.Black
     gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
-    strokeLine(unit.size.x, unit.size.y, blockSize)
+    strokeLines(unit.size.x, unit.size.y, blockSize)
     unit.view.blocks foreach (b => drawBlock(b.pos.x, unit.size.y - b.pos.y - 1, blockSize))
 
     // draw next block
-    strokeLine(4, 4, nextSize, nextPos.x, nextPos.y)
+    strokeLines(4, 4, nextSize, nextPos.x, nextPos.y)
     unit.view.next.copy(pos = Point(2.0, 2.0))
       .current foreach (b => drawBlock(b.pos.x, 4 - b.pos.y - 1, nextSize, nextPos.x, nextPos.y))
 
