@@ -11,15 +11,13 @@ case class Point[T](x: T, y: T)(implicit num: Numeric[T]) {
 
   import num._
 
-  def map[U](func: T => U)(implicit u: Numeric[U]) = Point(func(x), func(y))
+  def map[U](func: T => U)(implicit u: Numeric[U]): Point[U] = Point(func(x), func(y))
 
-  def +[U <: T](other: Point[U]): Point[T] = Point(this.x + other.x, this.y + other.y)
+  def +[U <: T](other: Point[U]): Point[T] = copy(x + other.x, y + other.y)
 
   def +[U >: T](other: Point[U])(implicit u: Numeric[U]): Point[U] = Point[U](x, y) + other
 
-  def *[U <: T](scalar: U): Point[T] = Point(x * scalar, y * scalar)
-
-  def *[U >: T](scalar: U)(implicit u: Numeric[U]): Point[U] = Point[U](x, y) * scalar
+  def *[U](scalar: U)(implicit ev$1: U => T): Point[T] = copy(x * scalar, y * scalar)
 }
 
 sealed trait Kind
