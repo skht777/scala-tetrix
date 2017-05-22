@@ -88,7 +88,7 @@ class fieldController(private val canvas: Canvas) {
       case KeyCode.Right => unit.right()
       case KeyCode.Up => unit.rotate()
       case KeyCode.Down => unit.down()
-      case KeyCode.Space => identity
+      case KeyCode.Space => unit.drop()
       case KeyCode.Enter => unit.status()
       case _ => identity
     }

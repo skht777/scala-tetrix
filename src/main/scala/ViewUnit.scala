@@ -19,6 +19,8 @@ case class ViewUnit(size: Point[Int]) {
 
   def down() = field.moveDown
 
+  def drop() = field.drop
+
   def status() = field.transStatus
 
 }

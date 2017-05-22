@@ -11,6 +11,8 @@ case class Field(size: Point[Int]) {
   val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
   val moveDown = transit(_.moveBy(0.0, -1.0),
     Function.chain(clearFullRow :: newState :: Nil))
+  val drop = (s: State) => Function.chain((Nil padTo(
+    size.y, transit { _.moveBy(0.0, -1.0) })) ++ List(moveDown))(s)
   val transStatus = (s: State) => s.status match {
     case Status.Ready => s.copy(status = Status.Active)
     case Status.GameOver => initState
