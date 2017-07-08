@@ -34,30 +34,27 @@ class fieldController(private val canvas: Canvas) {
   tl.play()
   drawView()
 
-  private[this] def drawBlock(posX: Double, posY: Double, size: Int, exX: Double = 0, exY: Double = 0) = {
-    val p = Point(exX, exY) + Point(posX, posY) * size
-    gc.fill = Color.White
-    gc.stroke = Color.Black
-    gc.fillRect(p.x, p.y, size, size)
-    strokeLine(p.x, p.y, size, 0)
-    strokeLine(p.x, p.y, 0, size)
-    strokeLine(p.x, p.y + size, size, 0)
-    strokeLine(p.x + size, p.y, 0, size)
-  }
-
-  private[this] def strokeLine(x: Double, y: Double, w: Double, h: Double) = gc.strokeLine(x, y, x + w, y + h)
-
-  private[this] def strokeLines(w: Int, h: Int, size: Int, exX: Double = 0, exY: Double = 0) = {
-    gc.fill = Color.Black
-    gc.stroke = Color.White
-    0 to w map (i => i * size) foreach (x => strokeLine(exX + x, exY, 0, size * h))
-    0 to h map (i => i * size) foreach (y => strokeLine(exX, exY + y, size * w, 0))
-  }
-
   private[this] def drawView() = {
+    def drawBlock(posX: Double, posY: Double, size: Int, exX: Double = 0, exY: Double = 0) = {
+      val p = Point(posX, posY).move(exX, exY) * size
+      gc.fill = Color.White
+      gc.stroke = Color.Black
+      gc.fillRect(p.x, p.y, size, size)
+      gc.strokeRect(p.x, p.y, size, size)
+    }
+
+    def strokeLine(x: Double, y: Double, w: Double, h: Double) = gc.strokeLine(x, y, x + w, y + h)
+
+    def strokeLines(w: Int, h: Int, size: Int, exX: Double = 0, exY: Double = 0) = {
+      gc.fill = Color.Black
+      gc.stroke = Color.White
+      0 to w map (i => i * size) foreach (x => strokeLine(exX + x, exY, 0, size * h))
+      0 to h map (i => i * size) foreach (y => strokeLine(exX, exY + y, size * w, 0))
+    }
+
     val blockSize = 30
     val nextSize = blockSize / 2
-    val size: Point[Int] = unit.size * blockSize
+    val size = unit.size * blockSize
     val nextPos = Point(unit.size.x + 1, 2) * blockSize
     gc.fill = Color.Black
     gc.fillRect(0, 0, canvas getWidth, canvas getHeight)
